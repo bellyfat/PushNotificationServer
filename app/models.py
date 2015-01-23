@@ -8,6 +8,7 @@ from flask import current_app, request, url_for
 from flask.ext.login import UserMixin, AnonymousUserMixin
 from app.exceptions import ValidationError
 from . import db, login_manager
+from sqlalchemy.dialects.postgresql import JSON
 
 
 class Permission:
@@ -262,41 +263,26 @@ class Device(db.Model):
     failed_phone - Have we had feedback about this phone? If so, flag it.
     failed_count - consecutive failed pushes.  So that it can be removed and not tried again.
     """
+    id = db.Column(db.Integer, primary_key=True)
     device_token = db.Column(db.String(64))
-    gc_token =db.Column(db.String(256))
+    gc_token = db.Column(db.String(256))
     player_name = db.Column(db.String(128))
     last_notified_at = db.Column(db.DateTime, default=datetime.utcnow)
     test_phone = db.Column(db.Boolean, default=False, index=True)
     meta = db.Column(db.Text)
     failed_phone = db.Column(db.Boolean, default=False, index=True)
     failed_count = db.Column(db.Integer, default=0)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
     app_id = db.Column(db.Integer, db.ForeignKey('apps.id'))
 
 
-# class ComplexAlert(models.Model):
-#     sandbox = models.BooleanField()
-#     user = models.ForeignKey(User)
-#     app = models.ForeignKey(App)
-#     body = models.CharField(max_length=200)
-#     badge = models.IntegerField(default=0)
-#     sound = models.CharField(max_length=32, null=True, blank=True)
-#     action_loc_key = models.CharField(max_length=100, null=True, blank=True)
-#     loc_key = models.CharField(max_length=100, null=True, blank=True)
-#     loc_args = models.CharField(max_length=200, null=True, blank=True)
-#     custom_params = models.CharField(max_length=200, null=True, blank=True)
-#
-#     def __unicode__(self):
-#         return "%s %s" % (self.app.name, self.body)
+class Message(db.Model):
+    __tablename__ = 'messages'
 
+    id = db.Column(db.Integer, primary_key=True)
+    tokens = db.Column(JSON)
+    payload = db.Column(JSON)
+    app_id = db.Column(db.Integer, db.ForeignKey('apps.id'))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
-# class SimpleAlert(models.Model):
-#     sandbox = models.BooleanField()
-#     user = models.ForeignKey(User)
-#     app = models.ForeignKey(App)
-#     message = models.CharField(max_length=200)
-#     badge = models.IntegerField(default=0)
-#     sound = models.CharField(max_length=16, choices=(('chime', 'chime'),))
-#
-#     def __unicode__(self):
-#         return "%s %s" % self.app.name, self.message
+    def __unicode__(self):
+        return "%s %s" % (self.app.name, self.body)
