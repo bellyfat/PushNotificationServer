@@ -2,11 +2,8 @@ from datetime import datetime
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from markdown import markdown
-import bleach
-from flask import current_app, request, url_for
+from flask import current_app, request
 from flask.ext.login import UserMixin, AnonymousUserMixin
-from app.exceptions import ValidationError
 from . import db, login_manager
 from sqlalchemy.dialects.postgresql import JSON
 
@@ -106,7 +103,6 @@ class User(UserMixin, db.Model):
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = hashlib.md5(
                 self.email.encode('utf-8')).hexdigest()
-        self.followed.append(Follow(followed=self))
 
     @property
     def password(self):
